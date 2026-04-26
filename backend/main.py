@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from anthropic_client import ClaudeClient
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,6 +38,15 @@ class Message(BaseModel):
 class chatRequest(BaseModel):
     message: str
     history: Optional[List[Message]] = None
+
+    @field_validator("message")
+    @classmethod
+    def message_not_empty(cls, value: str) -> str:
+        if not value or not value.strip():
+            raise ValueError("Message cannot be empty")
+        if len(value) > 10000:
+            raise ValueError("Message too long (max 10000 characters)")
+        return value.strip()
 
 class chatResponse(BaseModel):
     response:str

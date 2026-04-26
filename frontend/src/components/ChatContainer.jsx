@@ -1,48 +1,118 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ChatContext } from "../utils/ChatContext";
+import { ChatContext } from "../context/ChatContext";
+import ClearModal from "./ClearModal";
+import CodeBlock from "./CodeBlock";
+import LoadingDots from "./LoadingDots";
+import "../App.css";
 
 function ChatContainer() {
-  const { messages } = useContext(ChatContext);
+  const { messages, clearHistory, isStreaming, streamingContent } =
+    useContext(ChatContext);
+  const [isOpen, setIsOpen] = useState(false);
   const endRef = useRef(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
 
-  return (
-    <section className="chat-container">
-      <div>
-         <div className="chat-row chat-row-ai">
-        <span className="ai-bot-icon" aria-label="AI">
-          <svg viewBox="0 0 24 24" fill="none" className="ai-bot-icon-svg">
-            <rect x="5" y="7" width="14" height="12" rx="3" stroke="currentColor" strokeWidth="1.8" />
-            <path d="M12 7V4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            <circle cx="9.5" cy="12" r="1" fill="currentColor" />
-            <circle cx="14.5" cy="12" r="1" fill="currentColor" />
-            <path d="M9 15.2C9.8 16 10.8 16.4 12 16.4C13.2 16.4 14.2 16 15 15.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </span>
-        <div className="chat-bubble chat-bubble-ai">AI message appears here</div>
-      </div>
-      {messages?.map((msg, index) => (
-        <div key={index} className={`chat-row ${msg.role === "user" ? "chat-row-user" : "chat-row-ai"}`}>
-          <div className={`chat-bubble ${msg.role === "user" ? "chat-bubble-user" : "chat-bubble-ai"}`}>
-            {msg.role === "assistant" ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {String(msg.content ?? "")}
-              </ReactMarkdown>
-            ) : (
-              msg.content ?? msg
-            )}
+  if (messages.length === 0) {
+    return (
+      <section className="chat-container">
+        <div className="empty-state">
+          <div className="empty-state-icon">💬</div>
+          <h2>Start a Conversation</h2>
+          <p>Ask me anthing! I'm an AI Assistant</p>
+          <div className="example-prompts">
+            <h3>Try asking:</h3>
+            <ul>
+              <li>Explain Redux in easy way</li>
+              <li>What can be good roadmap to lean Agentic AI?</li>
+              <li>What are the benfits od doing an hour physical activity? </li>
+            </ul>
           </div>
         </div>
-      ))}
-      <div ref={endRef} />
+      </section>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex justify-between bg-amber-700 mb-5 p-5 rounded-md">
+        <h1 className="text-white font-bold "> 🤖 AI Chat</h1>
+        <button
+          onClick={() => {
+            setIsOpen(true);
+          }}
+          className="cursor-pointer rounded-md bg-slate-800 p-2 text-white hover:bg-slate-600 hover:border-2"
+        >
+          🗑️ Clear Chat
+        </button>
       </div>
-    
-    </section>
+      <section className="chat-container">
+        <div>
+          <div className="chat-row chat-row-ai"></div>
+          {messages?.map((msg, index) => (
+            <div
+              key={index}
+              className={`chat-row ${msg.role === "user" ? "chat-row-user" : "chat-row-ai"}`}
+            >
+              <div
+                className={`chat-bubble ${msg.role === "user" ? "chat-bubble-user" : "chat-bubble-ai"}`}
+              >
+                {msg.role === "assistant" ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code({ inline, className, children, ...props }) {
+                        if (inline) {
+                          return (
+                            <code
+                              className={className}
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          );
+                        }
+                        return (
+                          <CodeBlock className={className}>
+                            {String(children).replace(/\n$/, "")}
+                          </CodeBlock>
+                        );
+                      },
+                    }}
+                  >
+                    {String(msg.content ?? "")}
+                  </ReactMarkdown>
+                ) : (
+                  (msg.content ?? msg)
+                )}
+              </div>
+            </div>
+          ))}
+          {isStreaming && !streamingContent && (
+            <div className="chat-row chat-row-ai">
+              <div className="chat-bubble chat-bubble-ai">
+                <LoadingDots />
+              </div>
+            </div>
+          )}
+          <div ref={endRef} />
+        </div>
+      </section>
+      <ClearModal
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+        }}
+        onConfirm={() => {
+          clearHistory();
+          setIsOpen(false);
+        }}
+      ></ClearModal>
+    </>
   );
 }
 

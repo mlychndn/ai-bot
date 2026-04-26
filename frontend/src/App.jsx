@@ -1,20 +1,18 @@
-import StreamChatInput from "./components/StreamChatInput"
-import ChatContainer from "./components/ChatContainer"
-import {ChatProvider } from "./utils/ChatContext"
+import StreamChatInput from "./components/StreamChatInput";
+import ChatContainer from "./components/ChatContainer";
+import { ChatProvider } from "./context/ChatContext";
 
-
-import './App.css'
+import "./App.css";
 
 function App() {
-  
   return (
     <main className="app-shell">
-     <ChatProvider>
+      <ChatProvider>
         <ChatContainer />
         <StreamChatInput />
-     </ChatProvider>  
+      </ChatProvider>
     </main>
-  )
+  );
 }
 
-export default App
+export default App;
