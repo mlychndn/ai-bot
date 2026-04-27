@@ -5,18 +5,16 @@ from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
+import os
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",
-    "http://localhost:5174/",
-    "http://localhost:8000/",
-]
+ALLOWED_ORIGINS= os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

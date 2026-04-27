@@ -4,15 +4,17 @@ uvicorn[standard]==0.27.0
 
 # Antropic Claude
 anthropic==0.18.0
+# Keep compatible with anthropic 0.18.0 (httpx 0.28 removed `proxies` arg)
+httpx<0.28
 
 # Environment variables
 python-dotenv==1.0.0
 
+# pydantic for data validation (use a Python 3.14-compatible 2.x release)
+pydantic>=2.11,<3.0
+
 # CORS support
 python-multipart==0.0.6
 
-# For streaming responses
-sse=starlette==1.8.2
-
-# MCP (Model Context Protocol)
-mcp>=0.9.0
+# For Lambda Function (newer versions support modern Python event loop behavior)
+mangum>=0.20,<0.22

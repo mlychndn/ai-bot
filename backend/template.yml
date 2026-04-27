@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AI Chatbot Backend API
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 1024
+    Runtime: python3.14
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        ANTHROPIC_API_KEY: !Ref AnthropicApiKey
+        MODEL: "claude-sonnet-4-5-20250929"
+        MAX_TOKENS: "4096"
+        ALLOWED_ORIGINS: "*"  # Will update after frontend deployment
+
+Parameters:
+  AnthropicApiKey:
+    Type: String
+    Description: Your Anthropic API Key
+    NoEcho: true
+
+Resources:
+  ChatbotApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  ChatbotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ai-chatbot-backend
+      CodeUri: .
+      Handler: lambda_handler.handler
+      Events:
+        HealthCheck:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ChatbotApi
+            Path: /health
+            Method: get
+        Chat:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ChatbotApi
+            Path: /chat
+            Method: post
+        ChatStream:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ChatbotApi
+            Path: /chat/stream
+            Method: post
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ChatbotApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  FunctionArn:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt ChatbotFunction.Arn

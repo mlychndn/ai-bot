@@ -13,3 +13,8 @@ venv/
 node_modules/
 frontend/dist/
 dist/
+
+#AWS SAM
+backend/.aws-sam/   
+.aws-sam
+samconfig.toml
